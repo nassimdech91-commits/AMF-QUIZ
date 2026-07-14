@@ -317,10 +317,16 @@ function startMode(mode) {
   state.sessionTotal = 0;
   let queue = [];
   if(mode==='all') queue = shuffle(QUESTIONS);
- else if(mode==='bookmarks'){
-  queue = QUESTIONS.filter(q => state.bookmarks.includes(q.id));
-
+else if(mode==='bookmarks'){
+  const from = parseInt(document.getElementById('bookmarks-from')?.value) || 1;
+  const to = parseInt(document.getElementById('bookmarks-to')?.value) || 9999;
   const order = document.getElementById('bookmarks-order')?.value || 'rand';
+
+  queue = QUESTIONS.filter(q =>
+    state.bookmarks.includes(q.id) &&
+    q.id >= from &&
+    q.id <= to
+  );
 
   if(order === 'rand'){
     queue = shuffle(queue);
@@ -328,7 +334,10 @@ function startMode(mode) {
     queue.sort((a,b) => a.id - b.id);
   }
 
-  if(!queue.length){alert('Aucune question mise de côté.');return;}
+  if(!queue.length){
+    alert('Aucune question mise de côté dans cette sélection.');
+    return;
+  }
 }
   else if(mode==='wrong'){
     queue = shuffle(QUESTIONS.filter(q => state.wrongIds.includes(q.id)));
@@ -551,17 +560,25 @@ function renderBookmarks() {
   const startBtn = document.createElement('button');
   startBtn.className = 'btn btn-primary';
   startBtn.style.marginTop = '14px';
- const select = document.createElement('select');
-select.id = 'bookmarks-order';
-select.className = 'btn';
-select.style.marginTop = '14px';
+ const controls = document.createElement('div');
+controls.style.marginTop = '14px';
 
-select.innerHTML = `
+controls.innerHTML = `
+<div style="margin-bottom:8px;">
+Début :
+<input id="bookmarks-from" type="number" value="1" style="width:80px;">
+&nbsp;
+Fin :
+<input id="bookmarks-to" type="number" value="9999" style="width:80px;">
+</div>
+
+<select id="bookmarks-order" class="btn">
 <option value="rand">🔀 Ordre aléatoire</option>
 <option value="seq">🔢 Ordre des numéros</option>
+</select>
 `;
 
-c.appendChild(select);
+c.appendChild(controls);
 
 startBtn.textContent = '▶ Réviser les mises de côté ('+qs.length+')';
 startBtn.onclick = () => startMode('bookmarks');
